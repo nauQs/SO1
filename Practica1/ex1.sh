@@ -11,7 +11,7 @@ echo $1
 
 directori=$1
 
-if [ ! -d $fitxer ] 
+if [ ! -d $directori ] 
    then
       echo "No heu entrat un directori"
       exit 2
