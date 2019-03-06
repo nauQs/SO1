@@ -1,0 +1,5 @@
+total 160
+drwxr-xr-x   9 arnauquindos  staff    288  4 mar 18:22 SO1
+drwxr-xr-x  14 arnauquindos  staff    448 21 feb 15:41 Sessio1
+-rw-r--r--@  1 arnauquindos  staff  78678 20 feb 10:59 Sessio1.zip
+drwxr-xr-x   4 arnauquindos  staff    128 20 feb 10:14 Tutorial Practica 1
