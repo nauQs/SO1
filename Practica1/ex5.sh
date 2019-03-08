@@ -6,25 +6,22 @@ then
    exit 1
 fi
 
-directoriactual=$(pwd)
-dir=$directoriactual/$1
 
 
-echo $dir
-if [ ! -d $dir ]
+echo $1
+if [ ! -d $1 ]
 then
 	echo sortim
 	exit 2
 fi
 
-for subdir in $(ls $dir)
+for subdir in $(ls $1)
 do
-   adr=$dir/$subdir
+   adr=$1/$subdir
    if [ -f $adr ]
    then
 	echo $adr
    else	
-	echo crida recursiva $adr
 	./$0 $adr
    fi
 done

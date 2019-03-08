@@ -6,9 +6,6 @@ then
    exit 1
 fi
 
-a=$1
-echo $1
-
 directori=$1
 
 if [ ! -d $directori ] 
@@ -22,8 +19,7 @@ dir=0
 paraules=$(ls $directori)
 for i in $paraules 
 do
-  adr=$a$i
-  echo $adr
+  adr=$1/$i
   if [ -d $adr ] 
   then
         dir=$(($dir+1))

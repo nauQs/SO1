@@ -6,7 +6,6 @@ then
    exit 1
 fi
 
-directoriactual=$(pwd)
 ls -l $directoriactual/$1 > "temp.txt"
 col5=($(awk '{print $5}' "temp.txt"))
 col9=($(awk '{print $9}' "temp.txt"))
@@ -14,7 +13,7 @@ len=${#col5[*]}
 i=0
 while [ $i -lt $len ]
 do
-  if [ -f $directoriactual/$1/${col9[$i]} ]
+  if [ -f $1/${col9[$i]} ]
   then
  	 if [ ${col5[$i]} -gt $2 ]
  	 then
