@@ -6,8 +6,6 @@ then
    exit 1
 fi
 
-user=$1
-
 ps aux | awk -v user="$1" '{if ($1 == user) vsz+=$5; rss+=$6} END {print "VSZ: " vsz " bytes \nRSS: " rss " bytes"}'
 
 exit 0
