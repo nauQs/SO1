@@ -1,13 +1,16 @@
 #!/bin/bash
 
-if [ $# -ne 1 ]
+if [ $# -ne 3 ]
 then
    echo "Nombre de parametres incorrecte"
    exit 1
 fi
 
-find $1 -type f  -exec ls -l {} \; | awk '{sum+=$5; fit+=1} END {print fit " fitxers \n"  sum " bytes"}'
-
+for fitxer in $(find $1 -type f -name "*.$2" -exec ls {} \;)
+do
+	echo $fitxer
+	echo  la cadena $3 apareix $(grep -o $3 $fitxer | wc -l) vegades
+done
 
 exit 0
 
