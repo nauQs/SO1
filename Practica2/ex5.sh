@@ -15,7 +15,22 @@ then
     fi
 fi
 
-awk -F ";" -v niub="$1" -v canvi="$2" -v grup="$3" '{if ($1 == niub) if(canvi == "problemes") sub(/F/,"CANVIGRUP",$3) ; if ($1 == niub) if(canvi == "practiques") print $2'} alumnes.csv
+niub=$(grep $1 alumnes.csv | awk -F ";" '{print $1}')
+prac=$(grep $1 alumnes.csv | awk -F ";" '{print $2}')
+prob=$(grep $1 alumnes.csv | awk -F ";" '{print $3}')
+
+line=($niub";"$prac";"$prob)
+
+if [ $2 != "problemes" ]
+then
+newline=($niub";"$3";"$prob)
+echo Grup de practiques modificat
+else
+newline=($niub";"$prac";"$3)
+echo Grup de problemes modificat
+fi
+sed -i'' -e "s/$line/$newline/g" alumnes.csv
+
 
 exit 0
 
