@@ -14,8 +14,20 @@ struct data {
 int get_column_int(char* line, int num);
 int get_data(struct data *data, FILE *file, int max);
 void productor(char* filename);
+void consumidor(void);
 int fd[2];
-    
+int parent_pid, child_pid;
+
+void sigusr1(int signo)
+{
+  printf("El pare ha rebut el SIGUSR1\n");
+}
+
+void sigusr2(int signo)
+{
+    printf("El fill ha rebut el SIGUSR2\n");
+}
+
 int main(int argc, char *argv[])
 {
     
@@ -26,21 +38,26 @@ int main(int argc, char *argv[])
     }
     
     pipe(fd);
-    if (fork() == 0){ // fill
-        //consumidor();
+    int ret = fork();
+    if (ret == 0){ // fill
+        signal(SIGUSR2, sigusr2);
+        parent_pid = getppid();
+        consumidor();
     } else {
+        signal(SIGUSR1, sigusr1);
+        child_pid = ret;
         productor(argv[1]);
     }
 }
 
 void productor(char *filename){
     FILE *file;
-    struct data *data;
+    struct data data;
     int i, temp, num_elements_block, num_elements, passenger_count, trip_time_in_secs;
     int *ptr;
     
     ptr = malloc(2 * sizeof(int));
-    //int N = (65536/sizeof(int))-1; 
+    int N = (65536/sizeof(int))-1; 
     
     num_elements_block = 100000;
     passenger_count = 0;
@@ -52,44 +69,71 @@ void productor(char *filename){
         exit(1);
     }
     
-    data->passenger_count   = malloc(sizeof(int) * num_elements_block);
-    data->trip_time_in_secs = malloc(sizeof(int) * num_elements_block); 
+    data.passenger_count   = malloc(sizeof(int) * num_elements_block);
+    data.trip_time_in_secs = malloc(sizeof(int) * num_elements_block); 
 
-    num_elements = get_data(data, file, num_elements_block);
-
-    for(i = 0; i < num_elements; i++)
+    num_elements = get_data(&data, file, num_elements_block);
+    
+    for(i = 0; i < 3; i++)
     {
-        ptr[0] = data->passenger_count[i];
-        ptr[1] = data->trip_time_in_secs[i];
-        write(fd[1], ptr, sizeof(int)*2);
-        printf("%d\n", ptr[0]);
-    
-        /*
-        temp = data.passenger_count[i];
-        passenger_count += temp;
-        temp = data.trip_time_in_secs[i];
-        trip_time_in_secs += temp;
-        */
+        for(int j=0; j<2; j++)
+        {
+            ptr[0] = data.passenger_count[i];
+            ptr[1] = data.trip_time_in_secs[i];
+            write(fd[1], ptr, sizeof(int)*2);
+            printf("enviem %d\n", ptr[0]);
+            printf("enviem %d\n", ptr[1]);
+        }
+        kill(child_pid, SIGUSR2);
+        pause();
     }
+    ptr[0] = -1;
+    write(fd[1], ptr, sizeof(int)*2);
+    kill(child_pid, SIGUSR2);
 
-    free(data->passenger_count);
-    free(data->trip_time_in_secs);
-
-    fclose(file);
-    /*
-    float pc = 0, tt = 0;
-    pc = (float)passenger_count/(float)num_elements;	
-    tt = (float)trip_time_in_secs/(float)num_elements;
-
-    printf("Aplication read %d elements\n", num_elements);
-    printf("Mean of passengers: %f\n", pc);
-    printf("Mean of trip time: %f\n secs", tt);
-    */
+    free(data.passenger_count);
+    free(data.trip_time_in_secs);
     
+    fclose(file);    
 } // li passarem el fitxer
 
+void consumidor(void){
+    int passengers = 0;
+    int trip_time = 0;
+    int count = 0;
+    int *read_data = malloc(2 * sizeof(int));
+    read_data[0]=0;
+    read_data[1]=0;
+    while(read_data[0]!=-1){
+        pause();
+        for(int k=0; k<2; k++)
+        {
+            read(fd[0],read_data,sizeof(int)*2);
+            printf("rebem %d\n", read_data[0]);
+            printf("rebem %d\n", read_data[1]);
+            if(read_data[0]!=-1){
+                passengers+=read_data[0];
+                trip_time+=read_data[1];
+                count++;
+            }else{
+                break;
+            }
+        }
+        if(read_data[0]==-1){
+            break;
+        }
+        kill(parent_pid, SIGUSR1);
+    }
+    
+    float pc = 0, tt = 0;
+    pc = (float)passengers/(float)count;	
+    tt = (float)trip_time/(float)count;
 
-
+    printf("Aplication read %d elements\n", count);
+    printf("Mean of passengers: %f\n", pc);
+    printf("Mean of trip time: %f\n secs", tt);
+    
+}
 
 int get_column_int(char* line, int num)
 {
