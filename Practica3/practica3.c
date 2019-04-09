@@ -15,8 +15,9 @@ int get_column_int(char* line, int num);
 int get_data(struct data *data, FILE *file, int max);
 void productor(char* filename);
 void consumidor(void);
-int fd[2];
-int parent_pid, child_pid;
+int fd[2], parent_pid, child_pid;
+//int N = 65536/(sizeof(int)*2); 
+int N = 1000;
 
 void sigusr1(int signo)
 {
@@ -53,11 +54,10 @@ int main(int argc, char *argv[])
 void productor(char *filename){
     FILE *file;
     struct data data;
-    int i, temp, num_elements_block, num_elements, passenger_count, trip_time_in_secs;
+    int i, temp, num_elements_block, num_elements, passenger_count, trip_time_in_secs, k;
     int *ptr;
     
     ptr = malloc(2 * sizeof(int));
-    int N = (65536/sizeof(int))-1; 
     
     num_elements_block = 100000;
     passenger_count = 0;
@@ -74,15 +74,19 @@ void productor(char *filename){
 
     num_elements = get_data(&data, file, num_elements_block);
     
-    for(i = 0; i < 3; i++)
+    for(i = 0; i < num_elements; i+=N)
     {
-        for(int j=0; j<2; j++)
+        for(int j=0; j<N && i+j<num_elements; j++)
         {
-            ptr[0] = data.passenger_count[i];
-            ptr[1] = data.trip_time_in_secs[i];
+            ptr[0] = data.passenger_count[i+j];
+            ptr[1] = data.trip_time_in_secs[i+j];
             write(fd[1], ptr, sizeof(int)*2);
-            printf("enviem %d\n", ptr[0]);
-            printf("enviem %d\n", ptr[1]);
+            printf("enviem %d, %d\n", ptr[0], ptr[1]);
+            k = j;
+        }
+        printf("acabem bloc i+k=%d, num_elements=%d\n", i+k, num_elements);
+        if(i+k>=num_elements-1){
+            break;
         }
         kill(child_pid, SIGUSR2);
         pause();
@@ -106,11 +110,10 @@ void consumidor(void){
     read_data[1]=0;
     while(read_data[0]!=-1){
         pause();
-        for(int k=0; k<2; k++)
+        for(int k=0; k<N; k++)
         {
             read(fd[0],read_data,sizeof(int)*2);
-            printf("rebem %d\n", read_data[0]);
-            printf("rebem %d\n", read_data[1]);
+            printf("rebem %d, %d\n", read_data[0], read_data[1]);
             if(read_data[0]!=-1){
                 passengers+=read_data[0];
                 trip_time+=read_data[1];
@@ -131,7 +134,7 @@ void consumidor(void){
 
     printf("Aplication read %d elements\n", count);
     printf("Mean of passengers: %f\n", pc);
-    printf("Mean of trip time: %f\n secs", tt);
+    printf("Mean of trip time: %f secs\n", tt);
     
 }
 
