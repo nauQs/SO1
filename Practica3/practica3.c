@@ -16,12 +16,12 @@ int get_data(struct data *data, FILE *file, int max);
 void productor(char* filename);
 void consumidor(void);
 int fd[2], parent_pid, child_pid;
-//int N = 65536/(sizeof(int)*2); 
-int N = 1000;
+int N = 65536/(sizeof(int)*2); 
+//int N = 1000;
 
 void sigusr1(int signo)
 {
-  printf("El pare ha rebut el SIGUSR1\n");
+    printf("El pare ha rebut el SIGUSR1\n");
 }
 
 void sigusr2(int signo)
