@@ -17,16 +17,15 @@ void productor(char* filename);
 void consumidor(void);
 int fd[2], parent_pid, child_pid;
 int N = 65536/(sizeof(int)*2); 
-//int N = 1000;
 
 void sigusr1(int signo)
 {
-    printf("El pare ha rebut el SIGUSR1\n");
+    //printf("El pare ha rebut el SIGUSR1\n");
 }
 
 void sigusr2(int signo)
 {
-    printf("El fill ha rebut el SIGUSR2\n");
+    //printf("El fill ha rebut el SIGUSR2\n");
 }
 
 int main(int argc, char *argv[])
@@ -81,10 +80,10 @@ void productor(char *filename){
             ptr[0] = data.passenger_count[i+j];
             ptr[1] = data.trip_time_in_secs[i+j];
             write(fd[1], ptr, sizeof(int)*2);
-            printf("enviem %d, %d\n", ptr[0], ptr[1]);
+            //printf("enviem %d, %d\n", ptr[0], ptr[1]);
             k = j;
         }
-        printf("acabem bloc i+k=%d, num_elements=%d\n", i+k, num_elements);
+        //printf("acabem bloc i+k=%d, num_elements=%d\n", i+k, num_elements);
         if(i+k>=num_elements-1){
             break;
         }
@@ -113,7 +112,7 @@ void consumidor(void){
         for(int k=0; k<N; k++)
         {
             read(fd[0],read_data,sizeof(int)*2);
-            printf("rebem %d, %d\n", read_data[0], read_data[1]);
+            //printf("rebem %d, %d\n", read_data[0], read_data[1]);
             if(read_data[0]!=-1){
                 passengers+=read_data[0];
                 trip_time+=read_data[1];
