@@ -16,7 +16,13 @@ int get_data(struct data *data, FILE *file, int max);
 void productor(char* filename);
 void consumidor(void);
 int fd[2], parent_pid, child_pid;
-int N = 65536/(sizeof(int)*2); 
+
+/*
+Escollim N com la mida màxima del pipe dividit entre la mida de 2 enters.
+Enviem arrays de dos enters (la mida d'un enter es 4Bytes).
+Restem un perquè la primera dada que enviem és la mida dels blocs.
+*/
+int N = 65536/(sizeof(int)*2)-1;
 
 void sigusr1(int signo)
 {
@@ -50,10 +56,12 @@ int main(int argc, char *argv[])
     }
 }
 
+////////////////////////////////////// PRODUCTOR //////////////////////////////////////
+
 void productor(char *filename){
     FILE *file;
     struct data data;
-    int i, temp, num_elements_block, num_elements, passenger_count, trip_time_in_secs, k;
+    int i, j, temp, num_elements_block, num_elements, passenger_count, trip_time_in_secs;
     int *ptr;
     
     ptr = malloc(2 * sizeof(int));
@@ -75,22 +83,23 @@ void productor(char *filename){
     
     for(i = 0; i < num_elements; i+=N)
     {
-        for(int j=0; j<N && i+j<num_elements; j++)
+        ptr[0] = N; //La mida del bloc serà la N que hem calculat (l'últim bloc acabarà quan enviem un -1)
+        ptr[1] = 0;
+        //Enviem la mida del bloc que enviarem al consumidor
+        write(fd[1], ptr, sizeof(int)*2); 
+        for(j=0; j<N && i+j<num_elements; j++)
         {
             ptr[0] = data.passenger_count[i+j];
             ptr[1] = data.trip_time_in_secs[i+j];
-            write(fd[1], ptr, sizeof(int)*2);
-            //printf("enviem %d, %d\n", ptr[0], ptr[1]);
-            k = j;
+            write(fd[1], ptr, sizeof(int)*2); //Enviem les dades en arrays de 2 posicions
         }
-        //printf("acabem bloc i+k=%d, num_elements=%d\n", i+k, num_elements);
-        if(i+k>=num_elements-1){
+        if(i+j>=num_elements-1){ //Si hem acabat d'enviar tots els elements no enviarem un altre senyal
             break;
         }
-        kill(child_pid, SIGUSR2);
+        kill(child_pid, SIGUSR2); //Enviem un senyal al consumidor perquè comenci a llegir
         pause();
     }
-    ptr[0] = -1;
+    ptr[0] = -1; //Enviem un -1 indicant que hem acabat d'enviar dades
     write(fd[1], ptr, sizeof(int)*2);
     kill(child_pid, SIGUSR2);
 
@@ -100,28 +109,32 @@ void productor(char *filename){
     fclose(file);    
 } // li passarem el fitxer
 
+
+////////////////////////////////////// CONSUMIDOR //////////////////////////////////////
 void consumidor(void){
     int passengers = 0;
     int trip_time = 0;
     int count = 0;
     int *read_data = malloc(2 * sizeof(int));
+    int block_size;
     read_data[0]=0;
     read_data[1]=0;
     while(read_data[0]!=-1){
-        pause();
-        for(int k=0; k<N; k++)
+        pause(); //El consumidor espera fins que rep un senyal del productor
+        read(fd[0],read_data,sizeof(int)*2); //Llegim la mida del bloc que rebrem
+        block_size = read_data[0];
+        for(int k=0; k<block_size; k++)
         {
-            read(fd[0],read_data,sizeof(int)*2);
-            //printf("rebem %d, %d\n", read_data[0], read_data[1]);
-            if(read_data[0]!=-1){
-                passengers+=read_data[0];
+            read(fd[0],read_data,sizeof(int)*2); //Llegim la parella de dades
+            if(read_data[0]!=-1){ //Comprovem que la dada no sigui -1 (si és -1 vol dir que hem acabat)
+                passengers+=read_data[0]; 
                 trip_time+=read_data[1];
                 count++;
             }else{
                 break;
             }
         }
-        if(read_data[0]==-1){
+        if(read_data[0]==-1){ //Si hem rebut un -1, vol dir que el productor ja ha acabat d'enviar dades
             break;
         }
         kill(parent_pid, SIGUSR1);
@@ -136,6 +149,9 @@ void consumidor(void){
     printf("Mean of trip time: %f secs\n", tt);
     
 }
+
+
+/////////////////////////////Codi donat per llegir el fitxer csv///////////////////////////////////
 
 int get_column_int(char* line, int num)
 {
