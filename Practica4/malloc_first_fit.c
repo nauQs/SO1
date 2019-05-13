@@ -38,7 +38,7 @@ p_meta_data request_space(size_t size_bytes)
 
 void free(void *ptr)
 {
-    fprintf(stderr, "Free\n");
+    fprintf(stderr, "Free. ");
     p_meta_data meta_data;
     if(ptr!= NULL){
         meta_data = ptr - SIZE_META_DATA;
@@ -80,7 +80,7 @@ void *malloc(size_t size_bytes)
       last_element = meta_data;
 
       if (first_element == NULL) // Is this the first element ?
-        first_element = meta_data;
+      	first_element = meta_data;
     }
 
     p = (void *) meta_data;
@@ -104,13 +104,23 @@ void *calloc(size_t nelem, size_t elsize)
 
 void *realloc(void *ptr, size_t size_bytes)
 {
-    if(ptr==NULL){
-        return malloc(size_bytes);
-    }else if(){
-        
-    }else{
-        
+    if(ptr!=NULL){
+        p_meta_data meta_data;
+        meta_data = ptr - SIZE_META_DATA;
+        if(meta_data->magic == MAGIC && meta_data->size_bytes >= size_bytes){
+            return ptr;
+            fprintf(stderr, "realloc: enough space already\n");
+        }else{
+            void *p;
+            p = malloc(size_bytes);
+            memcpy(p,ptr,meta_data->size_bytes);
+            fprintf(stderr, "realloc: memory reallocated\n");
+            return p;
+            
+        }
     }
-
-    return p;
+    return malloc(size_bytes);
 }
+
+
+
