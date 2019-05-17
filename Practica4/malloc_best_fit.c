@@ -11,11 +11,22 @@ p_meta_data last_element  = NULL;
 
 p_meta_data search_available_space(size_t size_bytes) {
     p_meta_data current = first_element;
-
-    while (current && !(current->available && current->size_bytes >= size_bytes)) {
+    p_meta_data best = NULL;
+    
+    while (current){
+        //fprintf(stderr,"hey %d\n",best);
+        if(best==NULL && current->available && current->size_bytes >= size_bytes){ //El primer cop, assigna el primer disponible on hi capiga
+            best = current;
+        }
+        if(best!=NULL){
+            if(current->available && current->size_bytes <= best->size_bytes && current->size_bytes >= size_bytes){ //Busquem el mes petit possible
+                //fprintf(stderr, "current %d, best %d, size demanada %d\n", current->size_bytes, best->size_bytes, size_bytes);
+                best = current;
+            }
+        }
         current = current->next;
     }
-    return current;
+    return best;
 }
 
 p_meta_data request_space(size_t size_bytes) 
