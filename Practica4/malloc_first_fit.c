@@ -38,7 +38,7 @@ p_meta_data request_space(size_t size_bytes)
 
 void free(void *ptr)
 {
-    fprintf(stderr, "Free\n");
+    //fprintf(stderr, "Free\n");
     p_meta_data meta_data;
     if(ptr!= NULL){
         meta_data = ptr - SIZE_META_DATA;
@@ -46,7 +46,7 @@ void free(void *ptr)
             fprintf(stderr, "Error: el magic no coincideix\n");
         }else{
             meta_data->available = 1;
-            fprintf(stderr, "S'ha alliberat l'espai de memòria: %d bytes\n", meta_data->size_bytes);
+            //fprintf(stderr, "S'ha alliberat l'espai de memòria: %d bytes\n", meta_data->size_bytes);
         }
     }
 }

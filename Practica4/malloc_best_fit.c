@@ -47,22 +47,6 @@ p_meta_data request_space(size_t size_bytes)
     return meta_data;
 }
 
-
-void free(void *ptr)
-{
-    fprintf(stderr, "Free\n");
-    p_meta_data meta_data;
-    if(ptr!= NULL){
-        meta_data = ptr - SIZE_META_DATA;
-        if(meta_data->magic != MAGIC){
-            fprintf(stderr, "Error: el magic no coincideix\n");
-        }else{
-            meta_data->available = 1;
-            fprintf(stderr, "S'ha alliberat l'espai de memòria: %d bytes\n", meta_data->size_bytes);
-        }
-    }
-}
-/*
 void free(void *ptr)
 {
     //fprintf(stderr, "Free. ");
@@ -76,22 +60,23 @@ void free(void *ptr)
             if(meta_data->next != NULL){
                 meta_data_next = meta_data->next;
                 if (meta_data_next->available == 1) {
-                    meta_data->size_bytes += meta_data_next->size_bytes;
+                    meta_data->size_bytes += meta_data_next->size_bytes + SIZE_META_DATA;
                     meta_data->next = meta_data_next->next;
+                    //fprintf(stderr, "Fusio next \n");
                 }
             }
             if (meta_data->previous != NULL) {
                 meta_data_prev = meta_data->previous;
                 if (meta_data_prev->available == 1) {
-                    meta_data_prev->size_bytes += meta_data->size_bytes;
+                    meta_data_prev->size_bytes += meta_data->size_bytes + SIZE_META_DATA;
                     meta_data_prev->next = meta_data->next;
+                    //fprintf(stderr, "Fusio prev \n");
                 }
             }
-            //fprintf(stderr, "S'ha alliberat l'espai de memòria: %d bytes\n", meta_data->size_bytes);
+            //fprintf(stderr, "S'ha alliberat l'espai de memòria: %ld bytes\n", meta_data->size_bytes);
         }
     }
 }
-*/
 
 void *malloc(size_t size_bytes) 
 {
@@ -104,7 +89,7 @@ void *malloc(size_t size_bytes)
 
     // We allocate a size of bytes multiple of 8
     size_bytes = ALIGN8(size_bytes);
-    //fprintf(stderr, "Malloc %zu bytes\n", size_bytes);
+    //fprintf(stderr, "Malloc %ld bytes\n", size_bytes);
 
     meta_data = search_available_space(size_bytes);
 
