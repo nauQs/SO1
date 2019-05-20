@@ -38,33 +38,15 @@ p_meta_data request_space(size_t size_bytes)
 
 void free(void *ptr)
 {
-    //fprintf(stderr, "Free. ");
-    p_meta_data meta_data, meta_data_next, meta_data_prev;
-    if(ptr!= NULL){ //si es null no fa res
+    fprintf(stderr, "Free\n");
+    p_meta_data meta_data;
+    if(ptr!= NULL){
         meta_data = ptr - SIZE_META_DATA;
-        if(meta_data->magic != MAGIC){ //si el magic no coincideix -> ERROR
+        if(meta_data->magic != MAGIC){
             fprintf(stderr, "Error: el magic no coincideix\n");
         }else{
-            /**
-             * TODO: hem de borrar 2 metadata i quedar-nos només amb 1, or what?
-             * 
-             */
             meta_data->available = 1;
-            if(meta_data->next != NULL){
-                meta_data_next = meta_data->next;
-                if (meta_data_next->available == 1) {
-                    meta_data->size_bytes += meta_data_next->size_bytes;
-                    meta_data->next = meta_data_next->next;
-                }
-            }
-            if (meta_data->previous != NULL) {
-                meta_data_prev = meta_data->previous;
-                if (meta_data_prev->available == 1) {
-                    meta_data_prev->size_bytes += meta_data->size_bytes;
-                    meta_data_prev->next = meta_data->next;
-                }
-            }
-            //fprintf(stderr, "S'ha alliberat l'espai de memòria: %d bytes\n", meta_data->size_bytes);
+            fprintf(stderr, "S'ha alliberat l'espai de memòria: %d bytes\n", meta_data->size_bytes);
         }
     }
 }

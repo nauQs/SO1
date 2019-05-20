@@ -47,6 +47,22 @@ p_meta_data request_space(size_t size_bytes)
     return meta_data;
 }
 
+
+void free(void *ptr)
+{
+    fprintf(stderr, "Free\n");
+    p_meta_data meta_data;
+    if(ptr!= NULL){
+        meta_data = ptr - SIZE_META_DATA;
+        if(meta_data->magic != MAGIC){
+            fprintf(stderr, "Error: el magic no coincideix\n");
+        }else{
+            meta_data->available = 1;
+            fprintf(stderr, "S'ha alliberat l'espai de memòria: %d bytes\n", meta_data->size_bytes);
+        }
+    }
+}
+/*
 void free(void *ptr)
 {
     //fprintf(stderr, "Free. ");
@@ -56,10 +72,6 @@ void free(void *ptr)
         if(meta_data->magic != MAGIC){ //si el magic no coincideix -> ERROR
             fprintf(stderr, "Error: el magic no coincideix\n");
         }else{
-            /**
-             * TODO: hem de borrar 2 metadata i quedar-nos només amb 1, or what?
-             * 
-             */
             meta_data->available = 1;
             if(meta_data->next != NULL){
                 meta_data_next = meta_data->next;
@@ -79,7 +91,7 @@ void free(void *ptr)
         }
     }
 }
-
+*/
 
 void *malloc(size_t size_bytes) 
 {
@@ -124,10 +136,7 @@ void *calloc(size_t nelem, size_t elsize)
 {
     void *p;
     p = malloc(nelem*elsize);
-    p_meta_data meta_data;
-    meta_data = p - SIZE_META_DATA;
     memset(p, 0, nelem*elsize);
-    
     return p;
 }
 
